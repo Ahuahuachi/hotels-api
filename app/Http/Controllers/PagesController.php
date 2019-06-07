@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -44,7 +45,36 @@ class PagesController extends Controller
 
                 foreach ($apiCall->hotels as $hotel) {
 
-                    $hotels[] = $hotel;
+                    if ($hotel->destination == $destinationCode) {
+
+                        $hotelName = $hotel->name;
+                        $options = $hotel->options;
+
+                        if (!array_key_exists($hotelName, $hotels)) {
+                            $hotels[$hotelName] = $hotel;
+                        } else {
+
+                            foreach ($options as $option) {
+                                $regime = $option->board->code;
+                                $optionName = $option->board->name;
+                                $price = $option->price->amount;
+
+                                $hotels[$hotelName]->options = array_unique($hotels[$hotelName]->options, SORT_REGULAR);
+
+                                foreach ($hotels[$hotelName]->options as $optionKey => $hotelsOption) {
+
+                                    if ($regime == $hotelsOption->board->code && $optionName == $hotelsOption->board->name) {
+
+                                        $hotelsOptionPrice = $hotelsOption->price->amount;
+
+                                        if ($price < $hotelsOptionPrice) {
+                                            $hotels[$hotelName]->options[$optionKey] = $option;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
